@@ -1,0 +1,109 @@
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express = require("express");
+const bodyParser = require("body-parser");
+const Client = require('node-rest-client').Client;
+const log = require('ololog').configure({
+    locate: false
+});
+let crypto_arr = [];
+let x = {};
+let user_agent = null;
+class App {
+    constructor() {
+        this.app = express();
+        this.config();
+        this.routes();
+    }
+    config() {
+        this.append('App start', []);
+        this.app.use(bodyParser.json());
+        this.app.use(bodyParser.urlencoded({ extended: false }));
+        this.app.use(function (req, res, next) {
+            user_agent = req.get('User-Agent');
+            next();
+        });
+    }
+    routes() {
+        const __self = this;
+        const router = express.Router();
+        router.get('/', function (req, res) {
+            __self.get_data('/').then((success) => {
+                log.red('crypto_arr', crypto_arr);
+                res.status(200).send({
+                    data: crypto_arr,
+                    status: '/',
+                });
+            });
+        });
+        router.get('/all', function (req, res) {
+            __self.get_data('all').then((success) => {
+                log.blue('crypto_arr', crypto_arr);
+                res.status(200).send({
+                    data: crypto_arr,
+                    status: 'all',
+                });
+            });
+        });
+        router.post('/', function (req, res) {
+            const data = req.body;
+            res.status(200).send(data);
+        });
+        this.app.use('/', router);
+    }
+    append(content, arr) {
+    }
+    client(market_name) {
+        const args = {
+            headers: {
+                'User-Agent': user_agent
+            }
+        };
+        const url = 'https://api.gdax.com/products/' + market_name + '/ticker';
+        const __client = new Client();
+        return new Promise((resolve, reject) => {
+            __client.get(url, args, (data, res) => {
+                crypto_arr.push({
+                    market: market_name,
+                    ticker: data,
+                });
+                resolve(data);
+            });
+        });
+    }
+    get_data(route) {
+        return __awaiter(this, void 0, void 0, function* () {
+            crypto_arr = [];
+            let first = 100;
+            let second = 200;
+            let third = 300;
+            log.cyan('First ' + first);
+            yield this.client('btc-usd');
+            // await this.await_this(first)
+            log.yellow('Second ' + second);
+            yield this.client('eth-usd');
+            // await this.await_this(second)
+            log.lightRed('Third ', third);
+            yield this.client('bch-usd');
+            // await this.await_this(third)
+            return new Promise((resolve, reject) => {
+                resolve(route);
+            });
+        });
+    }
+    await_this(delay) {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => resolve(), delay);
+        });
+    }
+}
+exports.default = new App().app;
+//# sourceMappingURL=app.js.map
