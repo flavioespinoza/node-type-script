@@ -1,7 +1,6 @@
 import * as express from 'express'
 import bodyParser = require('body-parser')
 import { Request, Response } from 'express'
-
 import * as _ from 'lodash'
 
 const Client = require('node-rest-client').Client
@@ -45,23 +44,10 @@ class App {
 
                 res.status(200).send({
                     data: crypto_arr,
-                    status: '/',
+                    route: '/',
+                    status: 'success'
                 })
 
-            })
-
-        })
-
-        router.get('/all', function (req: Request, res: Response) {
-
-            __self.get_data('all').then((success) => {
-
-                log.blue('crypto_arr', crypto_arr)
-
-                res.status(200).send({
-                    data: crypto_arr,
-                    status: 'all',
-                })
             })
 
         })

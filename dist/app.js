@@ -39,16 +39,8 @@ class App {
                 log.red('crypto_arr', crypto_arr);
                 res.status(200).send({
                     data: crypto_arr,
-                    status: '/',
-                });
-            });
-        });
-        router.get('/all', function (req, res) {
-            __self.get_data('all').then((success) => {
-                log.blue('crypto_arr', crypto_arr);
-                res.status(200).send({
-                    data: crypto_arr,
-                    status: 'all',
+                    route: '/',
+                    status: 'success'
                 });
             });
         });
