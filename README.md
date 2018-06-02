@@ -29,7 +29,7 @@ Run app
 $ npm start
 ```
 
-Navigate to in your favorite web browser: <http://localhost:8080> 
+Navigate to <http://localhost:8080> in your favorite web browser
 
 The data shown is the latest ticker info for the 3 most traded cryptocurrencies on the Gdax exchange <https://gdax.com>
 
