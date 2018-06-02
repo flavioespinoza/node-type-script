@@ -73,8 +73,8 @@ class App {
     get_data(route) {
         return __awaiter(this, void 0, void 0, function* () {
             crypto_arr = [];
-            let first = 'btc-usd';
-            let second = 'eth-usd';
+            let first = 'eth-usd';
+            let second = 'btc-usd';
             let third = 'bch-usd';
             log.cyan('First ' + first);
             yield this.rest_client(first);

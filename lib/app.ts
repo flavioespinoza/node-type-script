@@ -22,7 +22,6 @@ class App {
     public app: express.Application
 
     private config(): void {
-        this.append('App start', [])
         this.app.use(bodyParser.json())
         this.app.use(bodyParser.urlencoded({extended: false}))
         this.app.use(function(req, res, next) {
@@ -63,10 +62,6 @@ class App {
 
     }
 
-    private append(content: string, arr: Array<object>): void {
-
-    }
-
     private rest_client(market_name: string): Promise<string> {
 
         const args = {
@@ -93,8 +88,8 @@ class App {
 
         crypto_arr = []
 
-        let first: string = 'btc-usd'
-        let second: string = 'eth-usd'
+        let first: string = 'eth-usd'
+        let second: string = 'btc-usd'
         let third: string = 'bch-usd'
 
         log.cyan('First ' + first)
