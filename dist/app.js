@@ -15,7 +15,6 @@ const log = require('ololog').configure({
     locate: false
 });
 let crypto_arr = [];
-let x = {};
 let user_agent = null;
 class App {
     constructor() {
@@ -61,16 +60,16 @@ class App {
     }
     append(content, arr) {
     }
-    client(market_name) {
+    rest_client(market_name) {
         const args = {
             headers: {
                 'User-Agent': user_agent
             }
         };
         const url = 'https://api.gdax.com/products/' + market_name + '/ticker';
-        const __client = new Client();
+        const client = new Client();
         return new Promise((resolve, reject) => {
-            __client.get(url, args, (data, res) => {
+            client.get(url, args, (data, res) => {
                 crypto_arr.push({
                     market: market_name,
                     ticker: data,
@@ -82,26 +81,18 @@ class App {
     get_data(route) {
         return __awaiter(this, void 0, void 0, function* () {
             crypto_arr = [];
-            let first = 100;
-            let second = 200;
-            let third = 300;
+            let first = 'btc-usd';
+            let second = 'eth-usd';
+            let third = 'bch-usd';
             log.cyan('First ' + first);
-            yield this.client('btc-usd');
-            // await this.await_this(first)
+            yield this.rest_client(first);
             log.yellow('Second ' + second);
-            yield this.client('eth-usd');
-            // await this.await_this(second)
+            yield this.rest_client(second);
             log.lightRed('Third ', third);
-            yield this.client('bch-usd');
-            // await this.await_this(third)
+            yield this.rest_client(third);
             return new Promise((resolve, reject) => {
                 resolve(route);
             });
-        });
-    }
-    await_this(delay) {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => resolve(), delay);
         });
     }
 }

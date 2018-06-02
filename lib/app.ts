@@ -10,7 +10,6 @@ const log = require('ololog').configure({
 })
 
 let crypto_arr: Array<object> = []
-let x: object = {}
 let user_agent = null
 
 class App {
@@ -82,7 +81,7 @@ class App {
 
     }
 
-    private client(market_name: string): Promise<string> {
+    private rest_client(market_name: string): Promise<string> {
 
         const args = {
             headers: {
@@ -90,9 +89,10 @@ class App {
             }
         }
         const url = 'https://api.gdax.com/products/' + market_name + '/ticker'
-        const __client = new Client()
+        const client = new Client()
+
         return new Promise<string>((resolve, reject) => {
-            __client.get(url, args, (data, res) => {
+            client.get(url, args, (data, res) => {
                 crypto_arr.push({
                     market: market_name,
                     ticker: data,
@@ -100,38 +100,28 @@ class App {
                 resolve(data)
             })
         })
+
     }
 
     private async get_data(route: string): Promise<string> {
 
         crypto_arr = []
 
-        let first: number = 100
-        let second: number = 200
-        let third: number = 300
+        let first: string = 'btc-usd'
+        let second: string = 'eth-usd'
+        let third: string = 'bch-usd'
 
         log.cyan('First ' + first)
-        await this.client('btc-usd')
-        // await this.await_this(first)
+        await this.rest_client(first)
 
         log.yellow('Second ' + second)
-        await this.client('eth-usd')
-        // await this.await_this(second)
+        await this.rest_client(second)
 
         log.lightRed('Third ', third)
-        await this.client('bch-usd')
-        // await this.await_this(third)
+        await this.rest_client(third)
 
         return new Promise<string>((resolve, reject) => {
             resolve(route)
-        })
-
-    }
-
-    private await_this(delay: number): Promise<string> {
-
-        return new Promise<string>((resolve, reject) => {
-            setTimeout(() => resolve(), delay)
         })
 
     }
