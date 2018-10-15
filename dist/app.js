@@ -23,7 +23,6 @@ class App {
         this.routes();
     }
     config() {
-        this.append('App start', []);
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: false }));
         this.app.use(function (req, res, next) {
@@ -36,7 +35,7 @@ class App {
         const router = express.Router();
         router.get('/', function (req, res) {
             __self.get_data('/').then((success) => {
-                log.red('crypto_arr', crypto_arr);
+                log.red('crypto_arr', JSON.stringify(crypto_arr, null, 2));
                 res.status(200).send({
                     data: crypto_arr,
                     route: '/',
@@ -44,21 +43,30 @@ class App {
                 });
             });
         });
+        router.get('/balls', function (req, res) {
+            __self.get_data('balls').then((success) => {
+                log.blue('crypto_arr', JSON.stringify(crypto_arr, null, 2));
+                res.status(200).send({
+                    data: Object.assign({ balls: 'balls', arr: crypto_arr }),
+                    route: 'balls',
+                    status: 'success'
+                });
+            });
+        });
         router.post('/', function (req, res) {
+            log.lightYellow('post /');
             const data = req.body;
             res.status(200).send(data);
         });
         this.app.use('/', router);
     }
-    append(content, arr) {
-    }
-    rest_client(market_name) {
+    rest_client(market_name, url) {
         const args = {
             headers: {
                 'User-Agent': user_agent
             }
         };
-        const url = 'https://api.gdax.com/products/' + market_name + '/ticker';
+        console.log(url);
         const client = new Client();
         return new Promise((resolve, reject) => {
             client.get(url, args, (data, res) => {
@@ -73,15 +81,78 @@ class App {
     get_data(route) {
         return __awaiter(this, void 0, void 0, function* () {
             crypto_arr = [];
+            const self = this;
             let first = 'eth-usd';
             let second = 'btc-usd';
             let third = 'bch-usd';
-            log.cyan('First ' + first);
-            yield this.rest_client(first);
-            log.yellow('Second ' + second);
-            yield this.rest_client(second);
-            log.lightRed('Third ', third);
-            yield this.rest_client(third);
+            let _interval = '1m';
+            let _test_markets = [
+                {
+                    base: 'CCL',
+                    quote: 'USD',
+                    symbol: 'CCL/USDT'
+                },
+                {
+                    base: 'CCL',
+                    quote: 'ETH',
+                    symbol: 'CCL/ETH'
+                },
+                {
+                    base: 'BTC',
+                    quote: 'USD',
+                    symbol: 'BTC/USDT'
+                },
+                {
+                    base: 'ETH',
+                    quote: 'USD',
+                    symbol: 'ETH/USDT'
+                },
+                {
+                    base: 'ETH',
+                    quote: 'BTC',
+                    symbol: 'ETH/BTC'
+                },
+                {
+                    base: 'ADA',
+                    quote: 'USD',
+                    symbol: 'ADA/USDT'
+                },
+                {
+                    base: 'ADA',
+                    quote: 'BTC',
+                    symbol: 'ADA/BTC'
+                },
+                {
+                    base: 'ADA',
+                    quote: 'ETH',
+                    symbol: 'ADA/ETH'
+                }
+            ];
+            let _market_name = function (sym) {
+                return sym.replace('/', '_');
+            };
+            let _url = function (base, quote) {
+                return `https://min-api.cryptocompare.com/data/histominute?fsym=${base}&tsym=${quote}&aggregate=1&e=hitbtc`;
+            };
+            function asyncForEach(array, callback) {
+                return __awaiter(this, void 0, void 0, function* () {
+                    for (let index = 0; index < array.length; index++) {
+                        yield callback(array[index], index, array);
+                    }
+                });
+            }
+            function waitFor(markets) {
+                return self.rest_client(_market_name(markets.symbol), _url(markets.base, markets.quote));
+            }
+            const start = (all_markets) => __awaiter(this, void 0, void 0, function* () {
+                yield asyncForEach(all_markets, (market) => __awaiter(this, void 0, void 0, function* () {
+                    log.red('market', market);
+                    let stuff = yield waitFor(market);
+                    // console.log('stuff', stuff)
+                }));
+                console.log('Done');
+            });
+            start(_test_markets);
             return new Promise((resolve, reject) => {
                 resolve(route);
             });
