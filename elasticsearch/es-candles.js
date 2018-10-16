@@ -27,6 +27,24 @@ const _query = function (query) {
 	}
 }
 
+const _now_minus_min = function (min_past, min_now) {
+
+	return {
+		"bool": {
+			"filter": [
+				{
+					"range": {
+						"date": {
+							"from": `now-${min_past}m`,
+							"to": `now-${min_now}m`
+						}
+					}
+				}
+			]
+		}
+	}
+}
+
 const _smoothing_window = function (interval, smoothing_window) {
 	if (interval && smoothing_window) {
 		return smoothing_window
@@ -62,16 +80,15 @@ const _error = function (method, err, socket) {
 	}
 }
 
-
 // Main Export Candle Methods */
-module.exports.OHLCV = async function (interval, query) {
+module.exports.OHLCV = async function (interval, min_past, min_now) {
 
 	try {
 
 		let body = {
 
 			size: _size,
-			query: _query(query),
+			query: _now_minus_min(min_past, min_now),
 
 			// INTERVAL */
 			aggs: {
@@ -87,7 +104,7 @@ module.exports.OHLCV = async function (interval, query) {
 						// OPEN */
 						'the_open': {
 							top_hits: {
-								sort: [ { 'date': { order: 'asc' }} ],
+								sort: [{'date': {order: 'asc'}}],
 								_source: {
 									includes: [
 										'date',
@@ -102,7 +119,7 @@ module.exports.OHLCV = async function (interval, query) {
 						// CLOSE */
 						'the_close': {
 							top_hits: {
-								sort: [ { 'date': { order: 'desc' }} ],
+								sort: [{'date': {order: 'desc'}}],
 								_source: {
 									includes: [
 										'date',
@@ -140,7 +157,7 @@ module.exports.OHLCV = async function (interval, query) {
 							sum: {
 								field: 'volumeto'
 							}
-						},
+						}
 
 					}
 				}
@@ -359,7 +376,6 @@ module.exports.stats = async function (interval, query) {
 
 }
 
-
 // Dev & Testing */
 let __dev = true
 let __candle_data_model = {
@@ -387,18 +403,33 @@ let __smoothing_window = 15
 async function dev_test () {
 	try {
 
-		log.black(await self.OHLCV(__interval, __query))
+		let __min_past = 720
+		let __min_now = 0
 
-		log.lightMagenta(await self.moving_avg(__interval, __smoothing_window))
 
-		log.lightBlue(await self.stats(__interval, __query))
+		log.black(await self.OHLCV(__interval, __min_past, __min_now))
+
+		// log.lightMagenta(await self.moving_avg(__interval, __smoothing_window))
+
+		// log.lightBlue(await self.stats(__interval, __query))
 
 	} catch (err) {
-	  error('dev_test', err)
+
+		_error('dev_test', err)
+
 	}
 }
 
 if (__dev) {
+
+	const one_hour_ms = 3.6e+6
+
+	let __now_ts = Date.now()
+	let __hours_past = 12
+	let __past_ts = __now_ts - (__hours_past * one_hour_ms);
+
+	let __now_date = new Date(__now_ts);
+	let __past_date = new Date(__past_ts);
 
 	(async function () {
 		await dev_test()

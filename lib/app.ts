@@ -69,7 +69,7 @@ class App {
 
 
                     es.create({
-                        index: `${exchange_name}_candles_${4}`,
+                        index: `hitbtc_candles_btc_usd`,
                         type: market_name,
                         id: `${exchange_name}__${market_name}___${candle_obj.time}`,
                         body: candle_obj
