@@ -2,26 +2,20 @@ import * as express from 'express'
 import bodyParser = require('body-parser')
 import {Request, Response} from 'express'
 
+const log = require('ololog').configure({
+    locate: false
+})
 const _ = require('lodash')
 const Chance = require('chance')
 const chance = new Chance()
 
 const Client = require('node-rest-client').Client
-const log = require('ololog').configure({
-    locate: false
-})
 
 const elasticsearch = require('elasticsearch')
 const es = new elasticsearch.Client({
     host: 'localhost:9200',
     log: 'trace'
 })
-
-const es_cloud_creds = {
-    username: 'elastic',
-    password: 'A7mWSbrBAjaItQac3QPUlYiM',
-    cloud_id: 'scanner:dXMtZWFzdC0xLmF3cy5mb3VuZC5pbyRkNzI1ZGVhMmY4MmM0MzE4OGM0YzU1ZjBjZjlkNzY0YSQ5NDg0OTI4MDkzMmQ0NWI4OTQ0YWM4NDc5NjlkYTVlOQ=='
-}
 
 let crypto_arr: Array<object> = []
 let user_agent = null
@@ -55,7 +49,6 @@ class App {
             self.get_data('/').then( (response) => {
 
                 // log.red('crypto_arr', JSON.stringify(crypto_arr, null, 2))
-
 
                 let candel_obj_model = {
                     "time": 1539548160,
@@ -95,7 +88,7 @@ class App {
 
         router.post('/', function (req: Request, res: Response) {
 
-            log.lightYellow('post /')
+            log.lightYellow('post', '/')
 
             const data = req.body
             res.status(200).send(data)
@@ -215,6 +208,5 @@ class App {
     }
 
 }
-
 
 export default new App().app
