@@ -17,6 +17,12 @@ const es = new elasticsearch.Client({
     log: 'trace'
 })
 
+const es_cloud_creds = {
+    username: 'elastic',
+    password: 'A7mWSbrBAjaItQac3QPUlYiM',
+    cloud_id: 'scanner:dXMtZWFzdC0xLmF3cy5mb3VuZC5pbyRkNzI1ZGVhMmY4MmM0MzE4OGM0YzU1ZjBjZjlkNzY0YSQ5NDg0OTI4MDkzMmQ0NWI4OTQ0YWM4NDc5NjlkYTVlOQ=='
+}
+
 let crypto_arr: Array<object> = []
 let user_agent = null
 
@@ -46,46 +52,46 @@ class App {
 
         router.get('/', function (req: Request, res: Response) {
 
-            self.get_data('/').then(async (success) => {
+            self.get_data('/').then( (response) => {
 
                 // log.red('crypto_arr', JSON.stringify(crypto_arr, null, 2))
 
-                let raw_data = {
-                    data: crypto_arr,
-                    route: '/',
-                    status: 'success'
+
+                let candel_obj_model = {
+                    "time": 1539548160,
+                    "close": 6398.75,
+                    "high": 6399.07,
+                    "low": 6395,
+                    "open": 6398.17,
+                    "volumefrom": 2.94,
+                    "volumeto": 18810.2
                 }
 
                 let exchange_name = 'hitbtc'
+                let market_name = 'BTC_USD'
 
-                await es.create({
-                    index: `${exchange_name}_candles_raw`,
-                    type: 'raw_candles',
-                    id: `${exchange_name}__raw_candles___${chance.guid()}`,
-                    body: raw_data
+                log.blue('crypto_arr', crypto_arr)
+
+                _.each(crypto_arr, function (candle_obj) {
+
+
+                    es.create({
+                        index: `${exchange_name}_candles_${4}`,
+                        type: market_name,
+                        id: `${exchange_name}__${market_name}___${candle_obj.time}`,
+                        body: candle_obj
+                    })
+
+
                 })
 
-                res.status(200).send(raw_data)
+                res.status(200).send(crypto_arr)
+
 
             })
 
         })
 
-        router.get('/balls', function (req: Request, res: Response) {
-
-            self.get_data('balls').then((success) => {
-
-                log.blue('crypto_arr', JSON.stringify(crypto_arr, null, 2))
-
-                res.status(200).send({
-                    data: Object.assign({balls: 'balls', arr: crypto_arr}),
-                    route: 'balls',
-                    status: 'success'
-                })
-
-            })
-
-        })
 
         router.post('/', function (req: Request, res: Response) {
 
@@ -115,13 +121,17 @@ class App {
         return new Promise<string>((resolve, reject) => {
 
             client.get(url, args, (res_data, res) => {
-                crypto_arr.push({
-                    exchange_name: _exchange_name,
-                    market_name: market_name,
-                    market_info: market_info,
-                    url_candles: url,
-                    res_data: res_data,
+
+                let fuck = res_data.Data
+
+                _.each(res_data.Data, function (candle_obj) {
+                    let timestamp = candle_obj.time * 1000
+                    let date = new Date(timestamp)
+                    candle_obj.timestamp = timestamp
+                    candle_obj.date = date
+                    crypto_arr.push(candle_obj)
                 })
+
                 resolve(res_data)
             })
 
@@ -135,7 +145,7 @@ class App {
 
         let _interval = '1m'
 
-        let _test_markets = [
+        let _test_markets_all = [
             {
                 base: 'CCL',
                 quote: 'USD',
@@ -178,6 +188,14 @@ class App {
             }
         ]
 
+        let _test_markets = [
+            {
+                base: 'BTC',
+                quote: 'USDT',
+                symbol: 'BTC/USDT'
+            },
+        ]
+
         let _market_name = function (sym) {
             return sym.replace('/', '_')
         }
@@ -187,11 +205,8 @@ class App {
             return `https://min-api.cryptocompare.com/data/histominute?fsym=${base}&tsym=${quote}&aggregate=1&e=hitbtc`
         }
 
-        for (let i = 0; i < _test_markets.length; i++) {
+        await this.rest_client(_market_name(_test_markets[0].symbol), _url(_test_markets[0].base, _test_markets[0].quote), _test_markets[0])
 
-            await this.rest_client(_market_name(_test_markets[i].symbol), _url(_test_markets[i].base, _test_markets[i].quote), _test_markets[i])
-
-        }
 
         return new Promise<string>((resolve, reject) => {
             resolve(route)

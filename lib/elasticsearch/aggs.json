@@ -1,0 +1,58 @@
+{
+  "size": 0,
+  "aggs": {
+    "candle_intervals": {
+      "date_histogram": {
+        "field": "date",
+        "interval": "15m"
+      },
+      "aggs": {
+        "the_sum_close": {
+          "sum": {
+            "field": "close"
+          }
+        },
+        "the_movavg_of_the_sum_close": {
+          "moving_avg": {
+            "buckets_path": "the_sum_close",
+            "window": 15,
+            "model": "ewma",
+            "settings": {
+              "alpha": 0.5
+            }
+          }
+        },
+        "the_sum_high": {
+          "sum": {
+            "field": "high"
+          }
+        },
+        "the_movavg_of_the_sum_high": {
+          "moving_avg": {
+            "buckets_path": "the_sum_high",
+            "window": 15,
+            "model": "ewma",
+            "settings": {
+              "alpha": 0.5
+            }
+          }
+        },
+        "the_sum_low": {
+          "sum": {
+            "field": "low"
+          }
+        },
+        "the_movavg_of_the_sum_low": {
+          "moving_avg": {
+            "buckets_path": "the_sum_low",
+            "window": 15,
+            "model": "ewma",
+            "settings": {
+              "alpha": 0.5
+            }
+          }
+        }
+      }
+    }
+  }
+}
