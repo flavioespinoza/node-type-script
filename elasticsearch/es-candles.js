@@ -32,7 +32,7 @@ function error (method, err, socket) {
 	}
 }
 
-// Candle Query & Aggregation Methods */
+// Candle Methods */
 module.exports.candles_moving_avg = async function (interval, smoothing_window, ma_model, alpha, query) {
 	
 	try {
