@@ -267,10 +267,169 @@ curl -X PUT "localhost:9200/hitbtc_candles_1" -H 'Content-Type: application/json
 
 # GET MAPPINGS
 
-curl -X GET "localhost:9200/hitbtc_candles_1/_mapping/_doc"
+curl -X GET "localhost:9200/hitbtc_candles_4a/_mapping"
 
 
 
 
-curl -X GET "localhost:9200/_all/_mapping"
-curl -X GET "localhost:9200/_mapping"
+# POST SCRIPT
+
+curl -X POST "localhost:9200/_scripts/calculate-score" -H 'Content-Type: application/json' -d'
+{
+  "script": {
+    "lang": "painless",
+    "source": "Math.log(_score * 2) + params.my_modifier"
+  }
+}
+'
+
+curl -X GET "localhost:9200/my_index/_search" -H 'Content-Type: application/json' -d'
+{
+  "script_fields": {
+    "my_doubled_field": {
+      "script": {
+        "lang":   "expression",
+        "source": "doc[\u0027my_field\u0027] * multiplier",
+        "params": {
+          "multiplier": 2
+        }
+      }
+    }
+  }
+}
+
+'
+
+
+
+
+curl - X PUT "localhost:9200/hitbtc_candles_4a/_mapping" - H 'Content-Type: application/json' - d '
+"mappings": {
+	"BTC_USD": {
+		"properties": {
+			"close": {
+				"type": "float"
+			},
+			"date": {
+				"type": "date"
+			},
+			"high": {
+				"type": "float"
+			},
+			"low": {
+				"type": "float"
+			},
+			"open": {
+				"type": "float"
+			},
+			"time": {
+				"type": "long"
+			},
+			"timestamp": {
+				"type": "long"
+			},
+			"volumefrom": {
+				"type": "float"
+			},
+			"volumeto": {
+				"type": "float"
+			}
+		}
+	}
+	'
+
+
+
+curl -X PUT "localhost:9200/twitter" -H 'Content-Type: application/json' -d'
+{
+  "mappings": {
+    "tweet": {
+      "properties": {
+        "message": {
+          "type": "text"
+        }
+      }
+    }
+  }
+}
+'
+
+
+# ADD NEW FIELD w/MAPPINGS
+
+curl -X GET "localhost:9200/hitbtc_candles_4a/_mapping"
+
+curl -X PUT "localhost:9200/hitbtc_candles_4a/_mapping/volume" -H 'Content-Type: application/json' -d'
+
+{
+  "properties": {
+    "volume": {
+      "type": "float"
+    }
+  }
+}
+
+'
+
+
+curl -X PUT "localhost:9200/hitbtc_candles_4a/_mapping/volume" -H 'Content-Type: application/json' -d'
+{
+  "properties": {
+    "user_name": {
+      "type": "text"
+    }
+  }
+}
+'
+
+
+
+
+
+curl -X PUT "localhost:9200/twitter" -H 'Content-Type: application/json' -d'
+{
+  "mappings": {
+    "tweet": {
+      "properties": {
+        "message": {
+          "type": "text"
+        }
+      }
+    }
+  }
+}
+'
+curl -X POST "localhost:9200/twitter/_mapping/user" -H 'Content-Type: application/json' -d'
+{
+  "properties": {
+    "name": {
+      "type": "text"
+    }
+  }
+}
+'
+curl -X PUT "localhost:9200/hitbtc_candles_4a/_mapping/volume" -H 'Content-Type: application/json' -d'
+{
+  "properties": {
+    "balls": {
+      "type": "text"
+    }
+  }
+}
+'
+
+
+curl -X PUT "localhost:9200/twitter" -H 'Content-Type: application/json' -d'
+{}
+'
+curl -X PUT "localhost:9200/hitbtc_candles_4a/_mapping/BTC_USD" -H 'Content-Type: application/json' -d'
+{
+  "properties": {
+    "volume": {
+      "type": "float"
+    }
+  }
+}
+'
+
+

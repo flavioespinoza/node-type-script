@@ -1,0 +1,31 @@
+{
+  "size": 0,
+  "query": {
+    "match_all": {}
+  },
+  "aggs": {
+    "the_open_max": {
+      "max": {
+        "field": "open"
+      }
+    },
+    "the_open_desc": {
+      "top_hits": {
+        "sort": [
+          {
+            "date": {
+              "order": "desc"
+            }
+          }
+        ],
+        "_source": {
+          "includes": [
+            "date",
+            "timestamp"
+          ]
+        },
+        "size": 1
+      }
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "size": 0,
+  "query": {
+    "match_all": {}
+  },
+  "aggs": {
+    "the_interval": {
+      "date_histogram": {
+        "field": "date",
+        "interval": "60m"
+      },
+      "aggs": {
+        "the_close": {
+          "top_hits": {
+            "sort": [
+              {
+                "date": {
+                  "order": "desc"
+                }
+              }
+            ],
+            "_source": {
+              "includes": [
+                "date",
+                "timestamp",
+                "open"
+              ]
+            },
+            "size": 1
+          }
+        },
+        "the_high": {
+          "max": {
+            "field": "high"
+          }
+        },
+        "the_low": {
+          "max": {
+            "field": "low"
+          }
+        },
+        "the_open": {
+          "top_hits": {
+            "sort": [
+              {
+                "date": {
+                  "order": "asc"
+                }
+              }
+            ],
+            "_source": {
+              "includes": [
+                "date",
+                "timestamp",
+                "close"
+              ]
+            },
+            "size": 1
+          }
+        }
+      }
+    }
+  }
+}
