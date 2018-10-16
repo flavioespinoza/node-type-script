@@ -1,3 +1,4 @@
+// Imports
 const log = require('ololog').configure({locate: false})
 const _ = require('lodash')
 const Chance = require('chance')
@@ -5,95 +6,169 @@ const chance = new Chance()
 
 const self = this
 
-let _dev = true
-let _source_model = {
+// Candle Helper Functions */
+const _size = 0
 
-	'time': 1539558720,
-
-	'close': 6361.69,
-	'high': 6362.19,
-	'low': 6361.37,
-	'open': 6361.37,
-
-	'volumefrom': 28.25,
-	'volumeto': 179718.33,
-
-	'timestamp': 1539558720000,
-	'date': '2018-10-14T23:12:00.000Z'
-
-	// Source candle data model from https://min-api.cryptocompare.com */
+const _interval = function (interval) {
+	if (interval) {
+		return `${interval}m`
+	} else {
+		return '1m'
+	}
 }
 
-// Helper Functions */
-function error (method, err, socket) {
+const _query = function (query) {
+	if (query) {
+		return query
+	} else {
+		return {
+			match_all: {}
+		}
+	}
+}
+
+const _smoothing_window = function (interval, smoothing_window) {
+	if (interval && smoothing_window) {
+		return smoothing_window
+	}
+	else if (interval && !smoothing_window) {
+		return interval
+	}
+	else {
+		return 1
+	}
+}
+
+const _ma_model = function (ma_model) {
+	if (ma_model) {
+		return ma_model
+	} else {
+		return 'ewma'
+	}
+}
+
+const _alpha = function (alpha) {
+	if (alpha) {
+		return alpha
+	} else {
+		return 0.5 // min: 0 - max: 1
+	}
+}
+
+const _error = function (method, err, socket) {
 	log.lightYellow(`${method}__ERROR `, err.message)
 	if (socket) {
 		socket.emit(`${method}__ERROR `, err.message)
 	}
 }
 
-// Candle Methods */
-module.exports.candles_moving_avg = async function (interval, smoothing_window, ma_model, alpha, query) {
-	
+
+// Main Export Candle Methods */
+module.exports.OHLCV = async function (interval, query) {
+
 	try {
-		const _size = 0
 
-		const _interval = function () {
-			if (interval) {
-				return `${interval}m`
-			} else {
-				return '1m'
-			}
-		}
+		let body = {
 
-		const _query = function () {
-			if (query) {
-				return query
-			} else {
-				return {
-					match_all: {}
+			size: _size,
+			query: _query(query),
+
+			// INTERVAL */
+			aggs: {
+				'the_interval': {
+					date_histogram: {
+						field: 'date',
+						interval: _interval(interval)
+					},
+
+					// CANDLES */
+					aggs: {
+
+						// OPEN */
+						'the_open': {
+							top_hits: {
+								sort: [ { 'date': { order: 'asc' }} ],
+								_source: {
+									includes: [
+										'date',
+										'timestamp',
+										'open' //***
+									]
+								},
+								size: 1 // Returns First 1m candle in group with length of (interval)
+							}
+						},
+
+						// CLOSE */
+						'the_close': {
+							top_hits: {
+								sort: [ { 'date': { order: 'desc' }} ],
+								_source: {
+									includes: [
+										'date',
+										'timestamp',
+										'close' //***
+									]
+								},
+								size: 1 // Returns Last 1m candle in group with length of (interval)
+							}
+						},
+
+						// HIGH */
+						'the_high': {
+							max: {
+								field: 'high'
+							}
+						},
+
+						// LOW */
+						'the_low': {
+							max: {
+								field: 'low'
+							}
+						},
+
+						// VOLUME_FROM */
+						'the_volumefrom': {
+							sum: {
+								field: 'volumefrom'
+							}
+						},
+
+						// VOLUME_TO */
+						'the_volumeto': {
+							sum: {
+								field: 'volumeto'
+							}
+						},
+
+					}
 				}
 			}
 		}
 
-		const _smoothing = function () {
-			if (interval && smoothing_window) {
-				return smoothing_window
-			}
-			else if (interval && !smoothing_window) {
-				return interval
-			}
-			else {
-				return 1
-			}
-		}
+		return JSON.stringify(body)
 
-		const _ma_model = function () {
-			if (ma_model) {
-				return ma_model
-			} else {
-				return 'ewma'
-			}
-		}
+	} catch (err) {
+		_error('candles_OHLCV', err)
+	}
 
-		const _alpha = function () {
-			if (alpha) {
-				return alpha
-			} else {
-				return 0.5 // min: 0 - max: 1
-			}
-		}
+}
+
+module.exports.moving_avg = async function (interval, smoothing_window, ma_model, alpha, query) {
+
+	try {
 
 		let body = {
 			size: _size,
-			query: _query(),
+			query: _query(query),
 			aggs: {
 
 				// INTERVAL */
 				'the_interval': {
 					date_histogram: {
 						field: 'date',
-						interval: _interval()
+						interval: _interval(interval)
 					},
 
 					// CANDLES */
@@ -108,10 +183,10 @@ module.exports.candles_moving_avg = async function (interval, smoothing_window, 
 						'the_movavg_of_the_sum_open': {
 							moving_avg: {
 								buckets_path: 'the_sum_open',
-								window: _smoothing(),
-								model: _ma_model(),
+								window: _smoothing_window(smoothing_window),
+								model: _ma_model(ma_model),
 								settings: {
-									alpha: _alpha()
+									alpha: _alpha(alpha)
 								}
 							}
 						},
@@ -125,10 +200,10 @@ module.exports.candles_moving_avg = async function (interval, smoothing_window, 
 						'the_movavg_of_the_sum_high': {
 							moving_avg: {
 								buckets_path: 'the_sum_high',
-								window: _smoothing(),
-								model: _ma_model(),
+								window: _smoothing_window(smoothing_window),
+								model: _ma_model(ma_model),
 								settings: {
-									alpha: _alpha()
+									alpha: _alpha(alpha)
 								}
 							}
 						},
@@ -142,10 +217,10 @@ module.exports.candles_moving_avg = async function (interval, smoothing_window, 
 						'the_movavg_of_the_sum_low': {
 							moving_avg: {
 								buckets_path: 'the_sum_low',
-								window: _smoothing(),
-								model: _ma_model(),
+								window: _smoothing_window(smoothing_window),
+								model: _ma_model(ma_model),
 								settings: {
-									alpha: _alpha()
+									alpha: _alpha(alpha)
 								}
 							}
 						},
@@ -159,10 +234,10 @@ module.exports.candles_moving_avg = async function (interval, smoothing_window, 
 						'the_movavg_of_the_sum_close': {
 							moving_avg: {
 								buckets_path: 'the_sum_close',
-								window: _smoothing(),
-								model: _ma_model(),
+								window: _smoothing_window(smoothing_window),
+								model: _ma_model(ma_model),
 								settings: {
-									alpha: _alpha()
+									alpha: _alpha(alpha)
 								}
 							}
 						},
@@ -175,10 +250,10 @@ module.exports.candles_moving_avg = async function (interval, smoothing_window, 
 						'the_movavg_of_the_sum_volumefrom': {
 							moving_avg: {
 								buckets_path: 'the_sum_volumefrom',
-								window: _smoothing(),
-								model: _ma_model(),
+								window: _smoothing_window(smoothing_window),
+								model: _ma_model(ma_model),
 								settings: {
-									alpha: _alpha()
+									alpha: _alpha(alpha)
 								}
 							}
 						},
@@ -191,10 +266,10 @@ module.exports.candles_moving_avg = async function (interval, smoothing_window, 
 						'the_movavg_of_the_sum_volumeto': {
 							moving_avg: {
 								buckets_path: 'the_sum_volumeto',
-								window: _smoothing(),
-								model: _ma_model(),
+								window: _smoothing_window(smoothing_window),
+								model: _ma_model(ma_model),
 								settings: {
-									alpha: _alpha()
+									alpha: _alpha(alpha)
 								}
 							}
 						}
@@ -204,45 +279,27 @@ module.exports.candles_moving_avg = async function (interval, smoothing_window, 
 		}
 
 		return JSON.stringify(body)
+
 	} catch (err) {
-	  error('candles_moving_avg', err)
+		_error('candles_moving_avg', err)
 	}
 
 }
 
-module.exports.candles_stats = async function (interval, query) {
+module.exports.stats = async function (interval, query) {
 
 	try {
-		const _size = 0
-
-		const _interval = function () {
-			if (interval) {
-				return `${interval}m`
-			} else {
-				return '1m'
-			}
-		}
-
-		const _query = function () {
-			if (query) {
-				return query
-			} else {
-				return {
-					match_all: {}
-				}
-			}
-		}
 
 		let body = {
 			size: _size,
-			query: _query(),
+			query: _query(query),
 			aggs: {
 
 				// INTERVAL */
 				'the_interval': {
 					date_histogram: {
 						field: 'date',
-						interval: _interval()
+						interval: _interval(interval)
 					},
 
 					aggs: {
@@ -295,147 +352,53 @@ module.exports.candles_stats = async function (interval, query) {
 		}
 
 		return JSON.stringify(body)
+
 	} catch (err) {
-	  error('candles_stats', err)
+		_error('candles_stats', err)
 	}
 
 }
 
-module.exports.candles_OHLCV = async function (interval, query) {
-
-	try {
-		const _size = 0
-
-		const _interval = function () {
-			if (interval) {
-				return `${interval}m`
-			} else {
-				return '1m'
-			}
-		}
-
-		const _query = function () {
-			if (query) {
-				return query
-			} else {
-				return {
-					match_all: {}
-				}
-			}
-		}
-
-		let body = {
-
-			size: _size,
-			query: _query(),
-
-			// INTERVAL */
-			aggs: {
-				'the_interval': {
-					date_histogram: {
-						field: 'date',
-						interval: _interval()
-					},
-
-					// CANDLES */
-					aggs: {
-
-						// OPEN */
-						'the_open': {
-							top_hits: {
-								sort: [ { 'date': { order: 'asc' }} ],
-								_source: {
-									includes: [
-										'date',
-										'timestamp',
-										'open' //***
-									]
-								},
-								size: 1 // Returns First 1m candle in group with length of (interval)
-							}
-						},
-
-						// CLOSE */
-						'the_close': {
-							top_hits: {
-								sort: [
-									{
-										'date': {
-											order: 'desc'
-										}
-									}
-								],
-								_source: {
-									includes: [
-										'date',
-										'timestamp',
-										'close' //***
-									]
-								},
-								size: 1 // Returns Last 1m candle in group with length of (interval)
-							}
-						},
-
-						// HIGH */
-						'the_high': {
-							max: {
-								field: 'high'
-							}
-						},
-
-						// LOW */
-						'the_low': {
-							max: {
-								field: 'low'
-							}
-						},
-
-						// VOLUME_FROM */
-						'the_volumefrom': {
-							sum: {
-								field: 'volumefrom'
-							}
-						},
-
-						// VOLUME_TO */
-						'the_volumeto': {
-							sum: {
-								field: 'volumeto'
-							}
-						},
-
-					}
-				}
-			}
-		}
-
-		return JSON.stringify(body)
-	} catch (err) {
-	  error('candles_OHLCV', err)
-	}
-
-}
 
 // Dev & Testing */
-let _interval = 15
-let _query = null
-let _smoothing_window = 15
+let __dev = true
+let __candle_data_model = {
+
+	'time': 1539558720,
+
+	'close': 6361.69,
+	'high': 6362.19,
+	'low': 6361.37,
+	'open': 6361.37,
+
+	'volumefrom': 28.25,
+	'volumeto': 179718.33,
+
+	'timestamp': 1539558720000,
+	'date': '2018-10-14T23:12:00.000Z'
+
+	// source: https://min-api.cryptocompare.com */
+}
+
+let __interval = 15
+let __query = null
+let __smoothing_window = 15
 
 async function dev_test () {
 	try {
 
-		log.black(await self.candles_OHLCV(_interval, _query))
+		log.black(await self.OHLCV(__interval, __query))
 
-		log.lightBlue(await self.candles_stats(_interval, _query))
+		log.lightMagenta(await self.moving_avg(__interval, __smoothing_window))
 
-		log.lightMagenta(await self.candles_moving_avg(_interval, _smoothing_window))
+		log.lightBlue(await self.stats(__interval, __query))
 
 	} catch (err) {
 	  error('dev_test', err)
 	}
 }
 
-if (_dev) {
+if (__dev) {
 
 	(async function () {
 		await dev_test()
