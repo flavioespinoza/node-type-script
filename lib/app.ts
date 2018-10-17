@@ -65,21 +65,27 @@ class App {
 
                 log.blue('crypto_arr', crypto_arr)
 
-                _.each(crypto_arr, function (candle_obj) {
+                _.each(crypto_arr, async function (candle_obj) {
 
+                    let _id = `${exchange_name}__${market_name}___${candle_obj.timestamp}`
 
-                    es.create({
-                        index: `hitbtc_candles_btc_usd`,
-                        type: market_name,
-                        id: `${exchange_name}__${market_name}___${candle_obj.time}`,
-                        body: candle_obj
+                    let exists = await es.exists({
+                        index: 'hitbtc_candles_btc_usd',
+                        type: 'BTC_USD',
+                        id: _id
                     })
 
-
+                    if (!exists) {
+                        await es.create({
+                            index: 'hitbtc_candles_btc_usd',
+                            type: 'BTC_USD',
+                            id: _id,
+                            body: candle_obj
+                        });
+                    }
                 })
 
                 res.status(200).send(crypto_arr)
-
 
             })
 

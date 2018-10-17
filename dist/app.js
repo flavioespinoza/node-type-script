@@ -10,9 +10,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
 const bodyParser = require("body-parser");
-const Client = require('node-rest-client').Client;
 const log = require('ololog').configure({
     locate: false
+});
+const _ = require('lodash');
+const Chance = require('chance');
+const chance = new Chance();
+const Client = require('node-rest-client').Client;
+const elasticsearch = require('elasticsearch');
+const es = new elasticsearch.Client({
+    host: 'localhost:9200',
+    log: 'trace'
 });
 let crypto_arr = [];
 let user_agent = null;
@@ -31,62 +39,78 @@ class App {
         });
     }
     routes() {
-        const __self = this;
+        const self = this;
         const router = express.Router();
         router.get('/', function (req, res) {
-            __self.get_data('/').then((success) => {
-                log.red('crypto_arr', JSON.stringify(crypto_arr, null, 2));
-                res.status(200).send({
-                    data: crypto_arr,
-                    route: '/',
-                    status: 'success'
+            self.get_data('/').then((response) => {
+                // log.red('crypto_arr', JSON.stringify(crypto_arr, null, 2))
+                let candel_obj_model = {
+                    "time": 1539548160,
+                    "close": 6398.75,
+                    "high": 6399.07,
+                    "low": 6395,
+                    "open": 6398.17,
+                    "volumefrom": 2.94,
+                    "volumeto": 18810.2
+                };
+                let exchange_name = 'hitbtc';
+                let market_name = 'BTC_USD';
+                log.blue('crypto_arr', crypto_arr);
+                _.each(crypto_arr, function (candle_obj) {
+                    return __awaiter(this, void 0, void 0, function* () {
+                        let _id = `${exchange_name}__${market_name}___${candle_obj.timestamp}`;
+                        let exists = yield es.exists({
+                            index: 'hitbtc_candles_btc_usd',
+                            type: 'BTC_USD',
+                            id: _id
+                        });
+                        if (!exists) {
+                            yield es.create({
+                                index: 'hitbtc_candles_btc_usd',
+                                type: 'BTC_USD',
+                                id: _id,
+                                body: candle_obj
+                            });
+                        }
+                    });
                 });
-            });
-        });
-        router.get('/balls', function (req, res) {
-            __self.get_data('balls').then((success) => {
-                log.blue('crypto_arr', JSON.stringify(crypto_arr, null, 2));
-                res.status(200).send({
-                    data: Object.assign({ balls: 'balls', arr: crypto_arr }),
-                    route: 'balls',
-                    status: 'success'
-                });
+                res.status(200).send(crypto_arr);
             });
         });
         router.post('/', function (req, res) {
-            log.lightYellow('post /');
+            log.lightYellow('post', '/');
             const data = req.body;
             res.status(200).send(data);
         });
         this.app.use('/', router);
     }
-    rest_client(market_name, url) {
+    rest_client(market_name, url, market_info) {
         const args = {
             headers: {
                 'User-Agent': user_agent
             }
         };
-        console.log(url);
         const client = new Client();
+        let _exchange_name = 'hitbtc';
         return new Promise((resolve, reject) => {
-            client.get(url, args, (data, res) => {
-                crypto_arr.push({
-                    market: market_name,
-                    ticker: data,
+            client.get(url, args, (res_data, res) => {
+                let fuck = res_data.Data;
+                _.each(res_data.Data, function (candle_obj) {
+                    let timestamp = candle_obj.time * 1000;
+                    let date = new Date(timestamp);
+                    candle_obj.timestamp = timestamp;
+                    candle_obj.date = date;
+                    crypto_arr.push(candle_obj);
                 });
-                resolve(data);
+                resolve(res_data);
             });
         });
     }
     get_data(route) {
         return __awaiter(this, void 0, void 0, function* () {
-            crypto_arr = [];
             const self = this;
-            let first = 'eth-usd';
-            let second = 'btc-usd';
-            let third = 'bch-usd';
             let _interval = '1m';
-            let _test_markets = [
+            let _test_markets_all = [
                 {
                     base: 'CCL',
                     quote: 'USD',
@@ -99,12 +123,12 @@ class App {
                 },
                 {
                     base: 'BTC',
-                    quote: 'USD',
+                    quote: 'USDT',
                     symbol: 'BTC/USDT'
                 },
                 {
                     base: 'ETH',
-                    quote: 'USD',
+                    quote: 'USDT',
                     symbol: 'ETH/USDT'
                 },
                 {
@@ -114,7 +138,7 @@ class App {
                 },
                 {
                     base: 'ADA',
-                    quote: 'USD',
+                    quote: 'USDT',
                     symbol: 'ADA/USDT'
                 },
                 {
@@ -128,31 +152,20 @@ class App {
                     symbol: 'ADA/ETH'
                 }
             ];
+            let _test_markets = [
+                {
+                    base: 'BTC',
+                    quote: 'USDT',
+                    symbol: 'BTC/USDT'
+                },
+            ];
             let _market_name = function (sym) {
                 return sym.replace('/', '_');
             };
             let _url = function (base, quote) {
                 return `https://min-api.cryptocompare.com/data/histominute?fsym=${base}&tsym=${quote}&aggregate=1&e=hitbtc`;
             };
-            function asyncForEach(array, callback) {
-                return __awaiter(this, void 0, void 0, function* () {
-                    for (let index = 0; index < array.length; index++) {
-                        yield callback(array[index], index, array);
-                    }
-                });
-            }
-            function waitFor(markets) {
-                return self.rest_client(_market_name(markets.symbol), _url(markets.base, markets.quote));
-            }
-            const start = (all_markets) => __awaiter(this, void 0, void 0, function* () {
-                yield asyncForEach(all_markets, (market) => __awaiter(this, void 0, void 0, function* () {
-                    log.red('market', market);
-                    let stuff = yield waitFor(market);
-                    // console.log('stuff', stuff)
-                }));
-                console.log('Done');
-            });
-            start(_test_markets);
+            yield this.rest_client(_market_name(_test_markets[0].symbol), _url(_test_markets[0].base, _test_markets[0].quote), _test_markets[0]);
             return new Promise((resolve, reject) => {
                 resolve(route);
             });

@@ -283,16 +283,18 @@ curl -X POST "localhost:9200/_scripts/calculate-score" -H 'Content-Type: applica
 }
 '
 
-curl -X GET "localhost:9200/my_index/_search" -H 'Content-Type: application/json' -d'
+curl -X GET "localhost:9200/hitbtc_candles_BTC_USD4/_search" -H 'Content-Type: application/json' -d'
+
 {
-  "script_fields": {
-    "my_doubled_field": {
-      "script": {
-        "lang":   "expression",
-        "source": "doc[\u0027my_field\u0027] * multiplier",
-        "params": {
-          "multiplier": 2
-        }
+  "size": 0,
+  "aggs": {
+    "duplicateCount": {
+      "terms": {
+        "script": "doc['timestamp'].values",
+        "min_doc_count": 2
+      },
+      "duplicateDocuments": {
+        "top_hits": {}
       }
     }
   }
@@ -300,6 +302,26 @@ curl -X GET "localhost:9200/my_index/_search" -H 'Content-Type: application/json
 
 '
 
+curl -X GET "localhost:9200/hitbtc_candles_btc_usd/_search" -H 'Content-Type: application/json' -d'
+
+{
+  "size": 0,
+  "aggs": {
+    "duplicateCount": {
+      "terms": {
+        "script": "doc['timestamp'].values + doc['open'].values+doc['close'].values",
+        "min_doc_count": 2
+      },
+      "aggs": {
+        "duplicateDocuments": {
+          "top_hits": {}
+        }
+      }
+    }
+  }
+}
+
+'
 
 
 

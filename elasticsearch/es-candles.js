@@ -27,16 +27,16 @@ const _query = function (query) {
 	}
 }
 
-const _now_minus_min = function (min_past, min_now) {
+const _date_range = function (min_past, min_now) {
 
 	return {
-		"bool": {
-			"filter": [
+		'bool': {
+			'filter': [
 				{
-					"range": {
-						"date": {
-							"from": `now-${min_past}m`,
-							"to": `now-${min_now}m`
+					'range': {
+						'date': {
+							'from': `now-${min_past}m`,
+							'to': `now-${min_now}m`
 						}
 					}
 				}
@@ -88,7 +88,7 @@ module.exports.OHLCV = async function (interval, min_past, min_now) {
 		let body = {
 
 			size: _size,
-			query: _now_minus_min(min_past, min_now),
+			query: _date_range(min_past, min_now),
 
 			// INTERVAL */
 			aggs: {
@@ -396,16 +396,16 @@ let __candle_data_model = {
 	// source: https://min-api.cryptocompare.com */
 }
 
-let __interval = 15
 let __query = null
 let __smoothing_window = 15
+
+let __interval = 30
 
 async function dev_test () {
 	try {
 
-		let __min_past = 720
+		let __min_past = 60
 		let __min_now = 0
-
 
 		log.black(await self.OHLCV(__interval, __min_past, __min_now))
 
@@ -426,9 +426,9 @@ if (__dev) {
 
 	let __now_ts = Date.now()
 	let __hours_past = 12
-	let __past_ts = __now_ts - (__hours_past * one_hour_ms);
+	let __past_ts = __now_ts - (__hours_past * one_hour_ms)
 
-	let __now_date = new Date(__now_ts);
+	let __now_date = new Date(__now_ts)
 	let __past_date = new Date(__past_ts);
 
 	(async function () {

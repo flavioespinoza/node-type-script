@@ -6,8 +6,8 @@
         {
           "range": {
             "date": {
-              "from": "now",
-              "to": "now-1d"
+              "from": "now-720m",
+              "to": "now-0m"
             }
           }
         }
