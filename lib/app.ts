@@ -13,7 +13,15 @@ const Client = require('node-rest-client').Client
 
 const elasticsearch = require('elasticsearch')
 const es = new elasticsearch.Client({
-    host: 'localhost:9200',
+    // host: 'localhost:9200',
+    // host: 'http://178.128.190.197:9200',
+    hosts: [{
+        protocol: 'http',
+        host: '178.128.190.197',
+        port: 9200,
+        country: 'US',
+        weight: 10
+    }],
     log: 'trace'
 })
 
@@ -65,24 +73,29 @@ class App {
 
                 log.blue('crypto_arr', crypto_arr)
 
-                _.each(crypto_arr, async function (candle_obj) {
+                _.each(crypto_arr, function (candle_obj) {
 
-                    let _id = `${exchange_name}__${market_name}___${candle_obj.timestamp}`
+                    (async function (){
 
-                    let exists = await es.exists({
-                        index: 'hitbtc_candles_btc_usd',
-                        type: 'BTC_USD',
-                        id: _id
-                    })
+                        let _id = `${exchange_name}__${market_name}___${candle_obj.timestamp}`
 
-                    if (!exists) {
-                        await es.create({
+                        let exists = await es.exists({
                             index: 'hitbtc_candles_btc_usd',
                             type: 'BTC_USD',
-                            id: _id,
-                            body: candle_obj
-                        });
-                    }
+                            id: _id
+                        })
+
+                        if (!exists) {
+                            await es.create({
+                                index: 'hitbtc_candles_btc_usd',
+                                type: 'BTC_USD',
+                                id: _id,
+                                body: candle_obj
+                            });
+                        }
+
+                    })()
+
                 })
 
                 res.status(200).send(crypto_arr)

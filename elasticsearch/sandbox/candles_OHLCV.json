@@ -1,15 +1,45 @@
 {
   "size": 0,
   "query": {
-    "match_all": {}
+    "bool": {
+      "filter": [
+        {
+          "range": {
+            "date": {
+              "from": "now-60m",
+              "to": "now-0m"
+            }
+          }
+        }
+      ]
+    }
   },
   "aggs": {
     "the_interval": {
       "date_histogram": {
         "field": "date",
-        "interval": "60m"
+        "interval": "30m"
       },
       "aggs": {
+        "the_open": {
+          "top_hits": {
+            "sort": [
+              {
+                "date": {
+                  "order": "asc"
+                }
+              }
+            ],
+            "_source": {
+              "includes": [
+                "date",
+                "timestamp",
+                "open"
+              ]
+            },
+            "size": 1
+          }
+        },
         "the_close": {
           "top_hits": {
             "sort": [
@@ -23,7 +53,7 @@
               "includes": [
                 "date",
                 "timestamp",
-                "open"
+                "close"
               ]
             },
             "size": 1
@@ -39,23 +69,14 @@
             "field": "low"
           }
         },
-        "the_open": {
-          "top_hits": {
-            "sort": [
-              {
-                "date": {
-                  "order": "asc"
-                }
-              }
-            ],
-            "_source": {
-              "includes": [
-                "date",
-                "timestamp",
-                "close"
-              ]
-            },
-            "size": 1
+        "the_volumefrom": {
+          "sum": {
+            "field": "volumefrom"
+          }
+        },
+        "the_volumeto": {
+          "sum": {
+            "field": "volumeto"
           }
         }
       }

@@ -80,6 +80,7 @@ const _error = function (method, err, socket) {
 	}
 }
 
+
 // Main Export Candle Methods */
 module.exports.OHLCV = async function (interval, min_past, min_now) {
 
@@ -375,6 +376,7 @@ module.exports.stats = async function (interval, query) {
 	}
 
 }
+
 
 // Dev & Testing */
 let __dev = true

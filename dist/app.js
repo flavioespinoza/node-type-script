@@ -19,7 +19,15 @@ const chance = new Chance();
 const Client = require('node-rest-client').Client;
 const elasticsearch = require('elasticsearch');
 const es = new elasticsearch.Client({
-    host: 'localhost:9200',
+    // host: 'localhost:9200',
+    // host: 'http://178.128.190.197:9200',
+    hosts: [{
+            protocol: 'http',
+            host: '178.128.190.197',
+            port: 9200,
+            country: 'US',
+            weight: 10
+        }],
     log: 'trace'
 });
 let crypto_arr = [];
@@ -56,23 +64,46 @@ class App {
                 let exchange_name = 'hitbtc';
                 let market_name = 'BTC_USD';
                 log.blue('crypto_arr', crypto_arr);
+                es.create({
+                    index: 'hitbtc_candles_btc_usd',
+                    type: 'BTC_USD',
+                    id: 1,
+                    body: {
+                        "time": 1539548160,
+                        "close": 6398.75,
+                        "high": 6399.07,
+                        "low": 6395,
+                        "open": 6398.17,
+                        "volumefrom": 2.94,
+                        "volumeto": 18810.2
+                    }
+                });
                 _.each(crypto_arr, function (candle_obj) {
-                    return __awaiter(this, void 0, void 0, function* () {
-                        let _id = `${exchange_name}__${market_name}___${candle_obj.timestamp}`;
-                        let exists = yield es.exists({
-                            index: 'hitbtc_candles_btc_usd',
-                            type: 'BTC_USD',
-                            id: _id
-                        });
-                        if (!exists) {
+                    (function () {
+                        return __awaiter(this, void 0, void 0, function* () {
+                            let _id = `${exchange_name}__${market_name}___${candle_obj.timestamp}`;
                             yield es.create({
                                 index: 'hitbtc_candles_btc_usd',
                                 type: 'BTC_USD',
                                 id: _id,
                                 body: candle_obj
                             });
-                        }
-                    });
+                            // let exists = await es.exists({
+                            //     index: 'hitbtc_candles_btc_usd',
+                            //     type: 'BTC_USD',
+                            //     id: _id
+                            // })
+                            //
+                            // if (!exists) {
+                            //     await es.create({
+                            //         index: 'hitbtc_candles_btc_usd',
+                            //         type: 'BTC_USD',
+                            //         id: _id,
+                            //         body: candle_obj
+                            //     });
+                            // }
+                        });
+                    })();
                 });
                 res.status(200).send(crypto_arr);
             });
