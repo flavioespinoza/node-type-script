@@ -1,32 +1,34 @@
-import { v4String } from 'uuid/interfaces'
 import { _isEmail } from './is-email'
-
 const uuidv4 = require ('uuid/v4')
 
 export class User {
 
+	username: string
+
+	email: string | any
+
+	id: string
+
 	details: {
 		message: string,
 		subMessage: string
-	}
+	} | any
+
 	info: {
 		success: boolean,
-		id: v4String,
+		id: string,
 		username: string,
 		email: string,
 		details: object
-	}
-	username: string
-	email: string
-	id: v4String
+	} | any
 
-	constructor (username, email) {
+	constructor (username: string, email: string) {
 
 		this.username = username
+		this.id = uuidv4 ()
 
 		if (_isEmail (email)) {
 
-			this.id = uuidv4 ()
 			this.email = email
 			this.details = {
 				message: 'User created successfully!',
@@ -44,8 +46,11 @@ export class User {
 		} else {
 
 			this.email = null
-			this.details.message = `Email entered is invalid: ${email}`
-			this.details.subMessage = 'Must match pattern: youremail@emailprovider.com'
+
+			this.details = {
+				message: `Email entered is invalid: ${email}`,
+				subMessage: 'Must match pattern: youremail@emailprovider.com'
+			}
 
 			this.info = {
 				success: false,

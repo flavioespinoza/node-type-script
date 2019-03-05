@@ -1,13 +1,13 @@
-import * as express from 'express'
+import express = require('express')
 import bodyParser = require('body-parser')
 import { Request, Response } from 'express'
-import { _error } from './error'
-import { Chance } from 'chance'
-import log from 'ololog'
 import _ from 'lodash'
+import { _error } from './error'
 
 import Greeter, { User } from './Greeter'
 
+const log = require('ololog')
+const Chance = require('chance')
 const chance = new Chance ()
 
 // Color console log config
@@ -15,31 +15,29 @@ log.configure ({ locate: false })
 
 const Client = require ('node-rest-client').Client
 
-const elasticsearch = require ('elasticsearch')
-const es = new elasticsearch.Client ({
-	// host: 'localhost:9200',
-	// host: 'http://178.128.190.197:9200',
-	hosts: [{
-		protocol: 'http',
-		host: '178.128.190.197',
-		port: 9200,
-		country: 'US',
-		weight: 10
-	}],
-	log: 'trace'
-})
+// const elasticsearch = require ('elasticsearch')
+// const es = new elasticsearch.Client ({
+// 	// host: 'localhost:9200',
+// 	// host: 'http://178.128.190.197:9200',
+// 	hosts: [{
+// 		protocol: 'http',
+// 		host: '178.128.190.197',
+// 		port: 9200,
+// 		country: 'US',
+// 		weight: 10
+// 	}],
+// 	log: 'trace'
+// })
 
 let crypto_arr: Array<object> = []
-let user_agent = null
+let user_agent: any
 
 
 let invalid_email = new User('flavioespinoza', 'flavio.espinoza_gmail.com')
 let valid_email = new User('flavioespinoza', 'flavio.espinoza@gmail.com')
 
 log.lightYellow(JSON.stringify(invalid_email._info(), null, 2))
-
-log.blue(JSON.stringify(valid_email._info(), null, 2))
-
+log.cyan(JSON.stringify(valid_email._info(), null, 2))
 
 class App {
 
@@ -54,7 +52,7 @@ class App {
 	private config (): void {
 		this.app.use (bodyParser.json ())
 		this.app.use (bodyParser.urlencoded ({extended: false}))
-		this.app.use (function (req, res, next) {
+		this.app.use (function (req: any, res: any, next: any) {
 			user_agent = req.get ('User-Agent')
 			next ()
 		})
@@ -86,25 +84,17 @@ class App {
 
 				log.blue ('crypto_arr', crypto_arr)
 
-				_.each (crypto_arr, function (candle_obj) {
+				_.each (crypto_arr, function (candle_obj: any) {
 
 					(async function () {
 
 						let _id = `${exchange_name}__${market_name}___${candle_obj.timestamp}`
 
-						let exists = await es.exists ({
+						let update = {
 							index: 'hitbtc_candles_btc_usd',
-							type: 'BTC_USD',
-							id: _id
-						})
-
-						if (!exists) {
-							await es.create ({
-								index: 'hitbtc_candles_btc_usd',
-								type: 'BTC_USD',
-								id: _id,
-								body: candle_obj
-							})
+							type: 'hitbtc_market',
+							id: _id,
+							body: candle_obj
 						}
 
 					}) ()
@@ -145,11 +135,11 @@ class App {
 
 		return new Promise<string> ((resolve, reject) => {
 
-			client.get (url, args, (res_data, res) => {
+			client.get (url, args, (res_data: any, res: any) => {
 
 				let fuck = res_data.Data
 
-				_.each (res_data.Data, function (obj) {
+				_.each (res_data.Data, function (obj: any) {
 					let timestamp = obj.time * 1000
 					let date = new Date (timestamp)
 
@@ -232,11 +222,11 @@ class App {
 			}
 		]
 
-		let _market_name = function (sym) {
+		let _market_name = function (sym: string) {
 			return sym.replace ('/', '_')
 		}
 
-		let _url = function (base, quote) {
+		let _url = function (base: any, quote: any) {
 
 			return `https://min-api.cryptocompare.com/data/histominute?fsym=${base}&tsym=${quote}&aggregate=1&e=hitbtc`
 		}

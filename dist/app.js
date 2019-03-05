@@ -10,13 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
 const bodyParser = require("body-parser");
-const chance_1 = require("chance");
-const ololog_1 = require("ololog");
-const lodash_1 = require("lodash");
 const Greeter_1 = require("./Greeter");
-const chance = new chance_1.Chance();
+const log = require('ololog');
+const Chance = require('chance');
+const chance = new Chance();
+const _ = require('lodash');
 // Color console log config
-ololog_1.default.configure({ locate: false });
+log.configure({ locate: false });
 const Client = require('node-rest-client').Client;
 const elasticsearch = require('elasticsearch');
 const es = new elasticsearch.Client({
@@ -32,11 +32,11 @@ const es = new elasticsearch.Client({
     log: 'trace'
 });
 let crypto_arr = [];
-let user_agent = null;
+let user_agent;
 let invalid_email = new Greeter_1.User('flavioespinoza', 'flavio.espinoza_gmail.com');
 let valid_email = new Greeter_1.User('flavioespinoza', 'flavio.espinoza@gmail.com');
-ololog_1.default.lightYellow(JSON.stringify(invalid_email._info(), null, 2));
-ololog_1.default.blue(JSON.stringify(valid_email._info(), null, 2));
+log.lightYellow(JSON.stringify(invalid_email._info(), null, 2));
+log.blue(JSON.stringify(valid_email._info(), null, 2));
 class App {
     constructor() {
         this.app = express();
@@ -68,8 +68,8 @@ class App {
                 };
                 let exchange_name = 'hitbtc';
                 let market_name = 'BTC_USD';
-                ololog_1.default.blue('crypto_arr', crypto_arr);
-                lodash_1.default.each(crypto_arr, function (candle_obj) {
+                log.blue('crypto_arr', crypto_arr);
+                _.each(crypto_arr, function (candle_obj) {
                     (function () {
                         return __awaiter(this, void 0, void 0, function* () {
                             let _id = `${exchange_name}__${market_name}___${candle_obj.timestamp}`;
@@ -93,7 +93,7 @@ class App {
             });
         });
         router.post('/', function (req, res) {
-            ololog_1.default.lightYellow('post', '/');
+            log.lightYellow('post', '/');
             const data = req.body;
             res.status(200).send(data);
         });
@@ -110,10 +110,10 @@ class App {
         return new Promise((resolve, reject) => {
             client.get(url, args, (res_data, res) => {
                 let fuck = res_data.Data;
-                lodash_1.default.each(res_data.Data, function (obj) {
+                _.each(res_data.Data, function (obj) {
                     let timestamp = obj.time * 1000;
                     let date = new Date(timestamp);
-                    obj.volume = lodash_1.default.add(obj.volumeto, obj.volumeto);
+                    obj.volume = _.add(obj.volumeto, obj.volumeto);
                     crypto_arr.push({
                         'timestamp': timestamp,
                         'date': date,
