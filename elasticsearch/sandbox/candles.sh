@@ -4,35 +4,26 @@ version=4
 
 # Candle Interval
 
-curl -X GET "localhost:9200/hitbtc_candles_${version}/_search" -H 'Content-Type: application/json' -d'
+curl -XGET "http://178.128.190.197:9200/_search" -H 'Content-Type: application/json' -d'
 
 {
-  "size": 0,
-  "aggs": {
-    "candle_intervals": {
-      "date_histogram": {
-        "field": "date",
-        "interval": "15m"
-      },
-      "aggs": {
-        "sum_close": {
-          "sum": {
-            "field": "close"
-          }
-        },
-        "the_movavg": {
-          "moving_avg": {
-            "buckets_path": "sum_close",
-            "window": 15,
-            "model": "ewma",
-            "settings": {
-              "alpha": 0.5
-            }
-          }
-        }
-      }
-    }
+  "size": 10,
+  "query": {
+    "match_all": {}
   }
 }
 
 '
+
+
+curl -XGET "localhost:9200/_search" -H 'Content-Type: application/json' -d'
+
+{
+  "size": 10,
+  "query": {
+    "match_all": {}
+  }
+}
+
+'
+

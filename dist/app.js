@@ -10,12 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
 const bodyParser = require("body-parser");
-const log = require('ololog').configure({
-    locate: false
-});
-const _ = require('lodash');
-const Chance = require('chance');
-const chance = new Chance();
+const chance_1 = require("chance");
+const ololog_1 = require("ololog");
+const lodash_1 = require("lodash");
+const Greeter_1 = require("./Greeter");
+const chance = new chance_1.Chance();
+// Color console log config
+ololog_1.default.configure({ locate: false });
 const Client = require('node-rest-client').Client;
 const elasticsearch = require('elasticsearch');
 const es = new elasticsearch.Client({
@@ -32,6 +33,10 @@ const es = new elasticsearch.Client({
 });
 let crypto_arr = [];
 let user_agent = null;
+let invalid_email = new Greeter_1.User('flavioespinoza', 'flavio.espinoza_gmail.com');
+let valid_email = new Greeter_1.User('flavioespinoza', 'flavio.espinoza@gmail.com');
+ololog_1.default.lightYellow(JSON.stringify(invalid_email._info(), null, 2));
+ololog_1.default.blue(JSON.stringify(valid_email._info(), null, 2));
 class App {
     constructor() {
         this.app = express();
@@ -53,55 +58,34 @@ class App {
             self.get_data('/').then((response) => {
                 // log.red('crypto_arr', JSON.stringify(crypto_arr, null, 2))
                 let candel_obj_model = {
-                    "time": 1539548160,
-                    "close": 6398.75,
-                    "high": 6399.07,
-                    "low": 6395,
-                    "open": 6398.17,
-                    "volumefrom": 2.94,
-                    "volumeto": 18810.2
+                    'time': 1539548160,
+                    'close': 6398.75,
+                    'high': 6399.07,
+                    'low': 6395,
+                    'open': 6398.17,
+                    'volumefrom': 2.94,
+                    'volumeto': 18810.2
                 };
                 let exchange_name = 'hitbtc';
                 let market_name = 'BTC_USD';
-                log.blue('crypto_arr', crypto_arr);
-                es.create({
-                    index: 'hitbtc_candles_btc_usd',
-                    type: 'BTC_USD',
-                    id: 1,
-                    body: {
-                        "time": 1539548160,
-                        "close": 6398.75,
-                        "high": 6399.07,
-                        "low": 6395,
-                        "open": 6398.17,
-                        "volumefrom": 2.94,
-                        "volumeto": 18810.2
-                    }
-                });
-                _.each(crypto_arr, function (candle_obj) {
+                ololog_1.default.blue('crypto_arr', crypto_arr);
+                lodash_1.default.each(crypto_arr, function (candle_obj) {
                     (function () {
                         return __awaiter(this, void 0, void 0, function* () {
                             let _id = `${exchange_name}__${market_name}___${candle_obj.timestamp}`;
-                            yield es.create({
+                            let exists = yield es.exists({
                                 index: 'hitbtc_candles_btc_usd',
                                 type: 'BTC_USD',
-                                id: _id,
-                                body: candle_obj
+                                id: _id
                             });
-                            // let exists = await es.exists({
-                            //     index: 'hitbtc_candles_btc_usd',
-                            //     type: 'BTC_USD',
-                            //     id: _id
-                            // })
-                            //
-                            // if (!exists) {
-                            //     await es.create({
-                            //         index: 'hitbtc_candles_btc_usd',
-                            //         type: 'BTC_USD',
-                            //         id: _id,
-                            //         body: candle_obj
-                            //     });
-                            // }
+                            if (!exists) {
+                                yield es.create({
+                                    index: 'hitbtc_candles_btc_usd',
+                                    type: 'BTC_USD',
+                                    id: _id,
+                                    body: candle_obj
+                                });
+                            }
                         });
                     })();
                 });
@@ -109,7 +93,7 @@ class App {
             });
         });
         router.post('/', function (req, res) {
-            log.lightYellow('post', '/');
+            ololog_1.default.lightYellow('post', '/');
             const data = req.body;
             res.status(200).send(data);
         });
@@ -126,12 +110,21 @@ class App {
         return new Promise((resolve, reject) => {
             client.get(url, args, (res_data, res) => {
                 let fuck = res_data.Data;
-                _.each(res_data.Data, function (candle_obj) {
-                    let timestamp = candle_obj.time * 1000;
+                lodash_1.default.each(res_data.Data, function (obj) {
+                    let timestamp = obj.time * 1000;
                     let date = new Date(timestamp);
-                    candle_obj.timestamp = timestamp;
-                    candle_obj.date = date;
-                    crypto_arr.push(candle_obj);
+                    obj.volume = lodash_1.default.add(obj.volumeto, obj.volumeto);
+                    crypto_arr.push({
+                        'timestamp': timestamp,
+                        'date': date,
+                        'close': obj.close,
+                        'high': obj.high,
+                        'low': obj.low,
+                        'open': obj.open,
+                        'volume': obj.volumefrom,
+                        short: null,
+                        long: null
+                    });
                 });
                 resolve(res_data);
             });
@@ -188,7 +181,7 @@ class App {
                     base: 'BTC',
                     quote: 'USDT',
                     symbol: 'BTC/USDT'
-                },
+                }
             ];
             let _market_name = function (sym) {
                 return sym.replace('/', '_');
