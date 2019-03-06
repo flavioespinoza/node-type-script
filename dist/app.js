@@ -7,132 +7,31 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
 const bodyParser = require("body-parser");
+const axios_1 = __importDefault(require("axios"));
+const lodash_1 = __importDefault(require("lodash"));
+const error_1 = require("./error");
 const Greeter_1 = require("./Greeter");
 const log = require('ololog');
 const Chance = require('chance');
 const chance = new Chance();
-const _ = require('lodash');
 // Color console log config
 log.configure({ locate: false });
 const Client = require('node-rest-client').Client;
-const elasticsearch = require('elasticsearch');
-const es = new elasticsearch.Client({
-    // host: 'localhost:9200',
-    // host: 'http://178.128.190.197:9200',
-    hosts: [{
-            protocol: 'http',
-            host: '178.128.190.197',
-            port: 9200,
-            country: 'US',
-            weight: 10
-        }],
-    log: 'trace'
-});
 let crypto_arr = [];
 let user_agent;
 let invalid_email = new Greeter_1.User('flavioespinoza', 'flavio.espinoza_gmail.com');
 let valid_email = new Greeter_1.User('flavioespinoza', 'flavio.espinoza@gmail.com');
 log.lightYellow(JSON.stringify(invalid_email._info(), null, 2));
-log.blue(JSON.stringify(valid_email._info(), null, 2));
+log.cyan(JSON.stringify(valid_email._info(), null, 2));
 class App {
     constructor() {
-        this.app = express();
-        this.config();
-        this.routes();
-    }
-    config() {
-        this.app.use(bodyParser.json());
-        this.app.use(bodyParser.urlencoded({ extended: false }));
-        this.app.use(function (req, res, next) {
-            user_agent = req.get('User-Agent');
-            next();
-        });
-    }
-    routes() {
-        const self = this;
-        const router = express.Router();
-        router.get('/', function (req, res) {
-            self.get_data('/').then((response) => {
-                // log.red('crypto_arr', JSON.stringify(crypto_arr, null, 2))
-                let candel_obj_model = {
-                    'time': 1539548160,
-                    'close': 6398.75,
-                    'high': 6399.07,
-                    'low': 6395,
-                    'open': 6398.17,
-                    'volumefrom': 2.94,
-                    'volumeto': 18810.2
-                };
-                let exchange_name = 'hitbtc';
-                let market_name = 'BTC_USD';
-                log.blue('crypto_arr', crypto_arr);
-                _.each(crypto_arr, function (candle_obj) {
-                    (function () {
-                        return __awaiter(this, void 0, void 0, function* () {
-                            let _id = `${exchange_name}__${market_name}___${candle_obj.timestamp}`;
-                            let exists = yield es.exists({
-                                index: 'hitbtc_candles_btc_usd',
-                                type: 'BTC_USD',
-                                id: _id
-                            });
-                            if (!exists) {
-                                yield es.create({
-                                    index: 'hitbtc_candles_btc_usd',
-                                    type: 'BTC_USD',
-                                    id: _id,
-                                    body: candle_obj
-                                });
-                            }
-                        });
-                    })();
-                });
-                res.status(200).send(crypto_arr);
-            });
-        });
-        router.post('/', function (req, res) {
-            log.lightYellow('post', '/');
-            const data = req.body;
-            res.status(200).send(data);
-        });
-        this.app.use('/', router);
-    }
-    rest_client(market_name, url, market_info) {
-        const args = {
-            headers: {
-                'User-Agent': user_agent
-            }
-        };
-        const client = new Client();
-        let _exchange_name = 'hitbtc';
-        return new Promise((resolve, reject) => {
-            client.get(url, args, (res_data, res) => {
-                let fuck = res_data.Data;
-                _.each(res_data.Data, function (obj) {
-                    let timestamp = obj.time * 1000;
-                    let date = new Date(timestamp);
-                    obj.volume = _.add(obj.volumeto, obj.volumeto);
-                    crypto_arr.push({
-                        'timestamp': timestamp,
-                        'date': date,
-                        'close': obj.close,
-                        'high': obj.high,
-                        'low': obj.low,
-                        'open': obj.open,
-                        'volume': obj.volumefrom,
-                        short: null,
-                        long: null
-                    });
-                });
-                resolve(res_data);
-            });
-        });
-    }
-    get_data(route) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const self = this;
+        this._get_data = (route) => __awaiter(this, void 0, void 0, function* () {
             let _interval = '1m';
             let _test_markets_all = [
                 {
@@ -183,15 +82,101 @@ class App {
                     symbol: 'BTC/USDT'
                 }
             ];
-            let _market_name = function (sym) {
-                return sym.replace('/', '_');
-            };
-            let _url = function (base, quote) {
-                return `https://min-api.cryptocompare.com/data/histominute?fsym=${base}&tsym=${quote}&aggregate=1&e=hitbtc`;
-            };
-            yield this.rest_client(_market_name(_test_markets[0].symbol), _url(_test_markets[0].base, _test_markets[0].quote), _test_markets[0]);
+            let _market_name = this._market_name(_test_markets[0].symbol);
+            let _base = _test_markets[0].base;
+            let _quote = _test_markets[0].quote;
+            let _url = this._url(_base, _quote, 2);
+            yield this._rest_client(_market_name, _url, _test_markets[0]);
             return new Promise((resolve, reject) => {
                 resolve(route);
+            });
+        });
+        this.app = express();
+        this._config();
+        this._routes();
+    }
+    _config() {
+        this.app.use(bodyParser.json());
+        this.app.use(bodyParser.urlencoded({ extended: false }));
+        this.app.use((req, res, next) => {
+            user_agent = req.get('User-Agent');
+            next();
+        });
+    }
+    _market_name(sym) {
+        return sym.replace('/', '_');
+    }
+    _url(base, quote, limit) {
+        let _limit = Math.floor(limit);
+        return `https://min-api.cryptocompare.com/data/histominute?fsym=${base}&tsym=${quote}&limit=${_limit}&aggregate=1&e=hitbtc`;
+    }
+    _routes() {
+        const router = express.Router();
+        router.get('/', (req, res) => {
+            this._get_data('/').then(response => {
+                let candel_obj_model = {
+                    time: 1539548160,
+                    close: 6398.75,
+                    high: 6399.07,
+                    low: 6395,
+                    open: 6398.17,
+                    volumefrom: 2.94,
+                    volumeto: 18810.2
+                };
+                let exchange_name = 'hitbtc';
+                let market_name = 'BTC_USD';
+                log.blue('crypto_arr', crypto_arr.length);
+                log.blue('crypto_arr', crypto_arr[0]);
+                lodash_1.default.each(crypto_arr, (candle_obj) => {
+                    let _id = `${exchange_name}__${market_name}___${candle_obj.timestamp}`;
+                    let update = {
+                        index: 'hitbtc_candles_btc_usd',
+                        type: 'hitbtc_market',
+                        id: _id,
+                        body: candle_obj
+                    };
+                });
+                res.status(200).send(crypto_arr);
+            });
+        });
+        router.post('/', (req, res) => {
+            log.lightYellow('post', '/');
+            const data = req.body;
+            res.status(200).send(data);
+        });
+        this.app.use('/', router);
+    }
+    _rest_client(market_name, url, market_info) {
+        log.green('market_name', market_name);
+        log.green('url', url);
+        log.green('market_info', market_info);
+        return new Promise((resolve, reject) => {
+            axios_1.default({
+                url: url,
+                method: 'get'
+            })
+                .then(res => {
+                let res_data = res.data;
+                lodash_1.default.each(res_data.Data, obj => {
+                    let timestamp = obj.time * 1000;
+                    let date = new Date(timestamp);
+                    obj.volume = lodash_1.default.add(obj.volumeto, obj.volumeto);
+                    crypto_arr.push({
+                        timestamp: timestamp,
+                        date: date,
+                        close: obj.close,
+                        high: obj.high,
+                        low: obj.low,
+                        open: obj.open,
+                        volume: obj.volumefrom,
+                        short: null,
+                        long: null
+                    });
+                });
+                resolve(res_data);
+            })
+                .catch(err => {
+                error_1._error('_rest_client', err);
             });
         });
     }
