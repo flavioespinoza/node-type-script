@@ -9,48 +9,36 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const error_1 = require("./error");
-function _divide(a, b) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            return a / b;
-        }
-        catch (err) {
-            console.log('_divide', err);
-        }
-    });
-}
-exports._divide = _divide;
-function _multiply(a, b) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            return a * b;
-        }
-        catch (err) {
-            error_1._error('_multiply', err);
-        }
-    });
-}
-exports._multiply = _multiply;
-function _add(a, b) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            return a + b;
-        }
-        catch (err) {
-            error_1._error('_add', err);
-        }
-    });
-}
-exports._add = _add;
-function _subtract(a, b) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            return a - b;
-        }
-        catch (err) {
-            error_1._error('_subtract', err);
-        }
-    });
-}
-exports._subtract = _subtract;
+exports._divide = (a, b) => __awaiter(this, void 0, void 0, function* () {
+    try {
+        return a / b;
+    }
+    catch (err) {
+        console.log('_divide', err);
+    }
+});
+exports._multiply = (a, b) => __awaiter(this, void 0, void 0, function* () {
+    try {
+        return a * b;
+    }
+    catch (err) {
+        error_1._error('_multiply', err);
+    }
+});
+exports._add = (a, b) => __awaiter(this, void 0, void 0, function* () {
+    try {
+        return a + b;
+    }
+    catch (err) {
+        error_1._error('_add', err);
+    }
+});
+exports._subtract = (a, b) => __awaiter(this, void 0, void 0, function* () {
+    try {
+        return a - b;
+    }
+    catch (err) {
+        error_1._error('_subtract', err);
+    }
+});
 //# sourceMappingURL=async-math.js.map

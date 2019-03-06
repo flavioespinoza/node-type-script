@@ -3,17 +3,9 @@ import bodyParser = require('body-parser')
 import { Request, Response } from 'express'
 import axios from 'axios'
 import _ from 'lodash'
-
 import { _error } from './error'
 
-import Greeter, { User } from './Greeter'
-
-const log = require('ololog')
-const Chance = require('chance')
-const chance = new Chance()
-
-// Color console log config
-log.configure({ locate: false })
+const log = require('ololog').configure({ locate: false })
 
 let crypto_arr: Array<object> = []
 let user_agent: any

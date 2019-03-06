@@ -1,6 +1,6 @@
 import { _error } from './error'
 
-export async function _divide (a: number, b: number) {
+export const _divide = async (a: number, b: number) => {
 	try {
 		return a / b
 	} catch (err) {
@@ -8,7 +8,7 @@ export async function _divide (a: number, b: number) {
 	}
 }
 
-export async function _multiply (a: number, b: number) {
+export const _multiply = async (a: number, b: number) => {
 	try {
 		return a * b
 	} catch (err) {
@@ -16,7 +16,7 @@ export async function _multiply (a: number, b: number) {
 	}
 }
 
-export async function _add (a: number, b: number) {
+export const _add = async (a: number, b: number) => {
 	try {
 		return a + b
 	} catch (err) {
@@ -24,7 +24,7 @@ export async function _add (a: number, b: number) {
 	}
 }
 
-export async function _subtract (a: number, b: number) {
+export const _subtract = async (a: number, b: number) => {
 	try {
 		return a - b
 	} catch (err) {

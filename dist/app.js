@@ -16,19 +16,9 @@ const bodyParser = require("body-parser");
 const axios_1 = __importDefault(require("axios"));
 const lodash_1 = __importDefault(require("lodash"));
 const error_1 = require("./error");
-const Greeter_1 = require("./Greeter");
-const log = require('ololog');
-const Chance = require('chance');
-const chance = new Chance();
-// Color console log config
-log.configure({ locate: false });
-const Client = require('node-rest-client').Client;
+const log = require('ololog').configure({ locate: false });
 let crypto_arr = [];
 let user_agent;
-let invalid_email = new Greeter_1.User('flavioespinoza', 'flavio.espinoza_gmail.com');
-let valid_email = new Greeter_1.User('flavioespinoza', 'flavio.espinoza@gmail.com');
-log.lightYellow(JSON.stringify(invalid_email._info(), null, 2));
-log.cyan(JSON.stringify(valid_email._info(), null, 2));
 class App {
     constructor() {
         this._get_data = (route) => __awaiter(this, void 0, void 0, function* () {
