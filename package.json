@@ -23,7 +23,7 @@
     "axios": "^0.18.0",
     "body-parser": "^1.18.3",
     "chance": "^1.0.16",
-    "debug": "^4.1.1",
+    "debug": "4.1.1",
     "elasticsearch": "^15.1.1",
     "express": "^4.16.4",
     "lodash": "^4.17.10",
