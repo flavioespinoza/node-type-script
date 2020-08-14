@@ -1,6 +1,6 @@
 # node-typescript
 
-Example of Node server with multiple rest async await calls.
+Example of Node TypeScript REST API using async await.
 
 ## Prerequisites
 

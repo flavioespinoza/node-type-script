@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports._error = void 0;
 require('ansicolor').nice;
 const log = require('ololog').configure({ locate: false });
 function _error(method, err) {

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.User = void 0;
 const is_email_1 = require("./is-email");
 const uuidv4 = require('uuid/v4');
 class User {

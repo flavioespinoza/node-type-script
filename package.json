@@ -1,17 +1,17 @@
 {
-  "name": "node-typescript",
+  "name": "node-typescript-async",
   "version": "1.0.1",
   "author": "Flavio Espinoza <flavio.espinoza@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/flavioespinoza/node-typescript.git"
+    "url": "git+https://github.com/flavioespinoza/node-typescript-async.git"
   },
   "bugs": {
-    "url": "https://github.com/flavioespinoza/node-typescript/issues"
+    "url": "https://github.com/flavioespinoza/node-typescript-async/issues"
   },
-  "homepage": "https://github.com/flavioespinoza/node-typescript#readme",
-  "description": "Node v10 Typescript web app",
+  "homepage": "https://github.com/flavioespinoza/node-typescript-async#readme",
+  "description": "Node v10 TypesScript REST API using async await.",
   "main": "dist/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
