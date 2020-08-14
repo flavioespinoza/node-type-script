@@ -1,4 +1,4 @@
-# Node typescript rest with async await
+# node-typescript
 
 Example of Node server with multiple rest async await calls.
 
