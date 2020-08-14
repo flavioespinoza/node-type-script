@@ -42,7 +42,7 @@ class App {
 
         router.get('/', (req: Request, res: Response) => {
             this._get_data('/').then(response => {
-                let candel_obj_model = {
+                let candle_obj_model = {
                     time: 1539548160,
                     close: 6398.75,
                     high: 6399.07,
@@ -51,31 +51,31 @@ class App {
                     volumefrom: 2.94,
                     volumeto: 18810.2
                 }
-
                 let exchange_name = 'hitbtc'
                 let market_name = 'BTC_USD'
 
+                log.blue('candle_obj_model', candle_obj_model)
                 log.blue('crypto_arr', crypto_arr.length)
                 log.blue('crypto_arr', crypto_arr[0])
 
                 _.each(crypto_arr, (candle_obj: any) => {
 					let _id = `${exchange_name}__${market_name}___${candle_obj.timestamp}`
-
 					let update = {
 						index: 'hitbtc_candles_btc_usd',
 						type: 'hitbtc_market',
 						id: _id,
 						body: candle_obj
-					}
+                    }
+                    log.blue('update', update)
                 })
 
                 res.status(200).send(crypto_arr)
+                crypto_arr = []
             })
         })
 
         router.post('/', (req: Request, res: Response) => {
             log.lightYellow('post', '/')
-
             const data = req.body
             res.status(200).send(data)
         })
@@ -83,8 +83,8 @@ class App {
         this.app.use('/', router)
     }
 
-    private _rest_client(market_name: string, url: string, market_info: object): Promise<string> {
-        log.green('market_name', market_name)
+    private _rest_client(symbol: string, url: string, market_info: object): Promise<string> {
+        log.green('symbol', symbol)
         log.green('url', url)
         log.green('market_info', market_info)
 
@@ -97,6 +97,8 @@ class App {
                     let res_data = res.data
 
                     _.each(res_data.Data, obj => {
+                        log.red(res_data.Data)
+
                         let timestamp = obj.time * 1000
 
                         let date = new Date(timestamp)
@@ -104,6 +106,8 @@ class App {
                         obj.volume = _.add(obj.volumeto, obj.volumeto)
 
                         crypto_arr.push({
+                            exchange: 'HitBTC',
+                            market_info: market_info,
                             timestamp: timestamp,
                             date: date,
                             close: obj.close,
@@ -125,51 +129,7 @@ class App {
     }
 
     private _get_data = async (route: string) => {
-        let _interval = '1m'
-
-        let _test_markets_all = [
-            {
-                base: 'CCL',
-                quote: 'USD',
-                symbol: 'CCL/USDT'
-            },
-            {
-                base: 'CCL',
-                quote: 'ETH',
-                symbol: 'CCL/ETH'
-            },
-            {
-                base: 'BTC',
-                quote: 'USDT',
-                symbol: 'BTC/USDT'
-            },
-            {
-                base: 'ETH',
-                quote: 'USDT',
-                symbol: 'ETH/USDT'
-            },
-            {
-                base: 'ETH',
-                quote: 'BTC',
-                symbol: 'ETH/BTC'
-            },
-            {
-                base: 'ADA',
-                quote: 'USDT',
-                symbol: 'ADA/USDT'
-            },
-            {
-                base: 'ADA',
-                quote: 'BTC',
-                symbol: 'ADA/BTC'
-            },
-            {
-                base: 'ADA',
-                quote: 'ETH',
-                symbol: 'ADA/ETH'
-            }
-        ]
-
+        
         let _test_markets = [
             {
                 base: 'BTC',

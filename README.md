@@ -1,39 +1,125 @@
 # Node typescript rest with async await
 
-### Example of Node server with multiple rest async await calls.
+Example of Node server with multiple rest async await calls.
 
-### ----------------
+## Prerequisites
 
+Install typescript globally:
 
-Make sure you have typescript installed globally.
-```
-$ npm install -g typescript
-```
+```bash
+$ npm i -g typescript
 
-Make sure you have ts-node installed globally.
-```
-$ npm install -g ts-node
-```
+or
 
-Install Node Packages
-```
-$ npm install
+sudo npm i -g typescript
 ```
 
-Compile all typescript files to Javascript
+Install ts-node globally:
+
+```bash
+npm i -g ts-node
+
+or
+
+sudo npm i -g ts-node
 ```
-$ tcs
+
+Install Node Packages:
+
+```bash
+yarn
 ```
+
+Compile all typescript files to Javascript:
+
+```bash
+tcs
+
+or
+
+yarn run build
+```
+
 Run app
+
+```bash
+yarn run start
 ```
-$ npm start
+
+Navigate to <http://localhost:7000> in your favorite web browser
+
+
+## Browser
+The data shown is the latest ticker info for the past 3 minutes for `Bitcoin/US Dollar` on cryptocompare.com
+
+```json
+[
+  {
+    "exchange": "HitBTC",
+    "market_info": {
+      "base": "BTC",
+      "quote": "USDT",
+      "symbol": "BTC/USDT"
+    },
+    "timestamp": 1597433400000,
+    "date": "2020-08-14T19:30:00.000Z",
+    "close": 11811.63,
+    "high": 11812.31,
+    "low": 11807.37,
+    "open": 11809.38,
+    "volume": 15.14,
+    "short": null,
+    "long": null
+  },
+  {
+    "exchange": "HitBTC",
+    "market_info": {
+      "base": "BTC",
+      "quote": "USDT",
+      "symbol": "BTC/USDT"
+    },
+    "timestamp": 1597433460000,
+    "date": "2020-08-14T19:31:00.000Z",
+    "close": 11812.1,
+    "high": 11814.12,
+    "low": 11810.61,
+    "open": 11811.63,
+    "volume": 0.1788,
+    "short": null,
+    "long": null
+  },
+  {
+    "exchange": "HitBTC",
+    "market_info": {
+      "base": "BTC",
+      "quote": "USDT",
+      "symbol": "BTC/USDT"
+    },
+    "timestamp": 1597433520000,
+    "date": "2020-08-14T19:32:00.000Z",
+    "close": 11811.1,
+    "high": 11812.1,
+    "low": 11811.1,
+    "open": 11812.1,
+    "volume": 0,
+    "short": null,
+    "long": null
+  }
+]
 ```
 
-Navigate to <http://localhost:8080> in your favorite web browser
+## Development
 
-The data shown is the latest ticker info for the 3 most traded cryptocurrencies on the Gdax exchange <https://gdax.com>
+> **IMPORTANT**: Only make changes to `lib/app.ts` or `lib/server.ts` files.
 
-## NOTE: Only make changes to app.ts or server.ts in the /lib folder
+Make changes then stop server with `Ctrl + C`:
 
+```bash
+^C
+```
 
-##### NOTE: If you make any changes to the app.ts or server.ts files you need to run 'tcs' and 'npm start' to see your changes on <http://localhost:8080>
+Run build and restart to see your changes on <http://localhost:7000>:
+
+```bash
+yarn run restart
+```

@@ -22,49 +22,6 @@ let user_agent;
 class App {
     constructor() {
         this._get_data = (route) => __awaiter(this, void 0, void 0, function* () {
-            let _interval = '1m';
-            let _test_markets_all = [
-                {
-                    base: 'CCL',
-                    quote: 'USD',
-                    symbol: 'CCL/USDT'
-                },
-                {
-                    base: 'CCL',
-                    quote: 'ETH',
-                    symbol: 'CCL/ETH'
-                },
-                {
-                    base: 'BTC',
-                    quote: 'USDT',
-                    symbol: 'BTC/USDT'
-                },
-                {
-                    base: 'ETH',
-                    quote: 'USDT',
-                    symbol: 'ETH/USDT'
-                },
-                {
-                    base: 'ETH',
-                    quote: 'BTC',
-                    symbol: 'ETH/BTC'
-                },
-                {
-                    base: 'ADA',
-                    quote: 'USDT',
-                    symbol: 'ADA/USDT'
-                },
-                {
-                    base: 'ADA',
-                    quote: 'BTC',
-                    symbol: 'ADA/BTC'
-                },
-                {
-                    base: 'ADA',
-                    quote: 'ETH',
-                    symbol: 'ADA/ETH'
-                }
-            ];
             let _test_markets = [
                 {
                     base: 'BTC',
@@ -104,7 +61,7 @@ class App {
         const router = express.Router();
         router.get('/', (req, res) => {
             this._get_data('/').then(response => {
-                let candel_obj_model = {
+                let candle_obj_model = {
                     time: 1539548160,
                     close: 6398.75,
                     high: 6399.07,
@@ -115,6 +72,7 @@ class App {
                 };
                 let exchange_name = 'hitbtc';
                 let market_name = 'BTC_USD';
+                log.blue('candle_obj_model', candle_obj_model);
                 log.blue('crypto_arr', crypto_arr.length);
                 log.blue('crypto_arr', crypto_arr[0]);
                 lodash_1.default.each(crypto_arr, (candle_obj) => {
@@ -125,8 +83,10 @@ class App {
                         id: _id,
                         body: candle_obj
                     };
+                    log.blue('update', update);
                 });
                 res.status(200).send(crypto_arr);
+                crypto_arr = [];
             });
         });
         router.post('/', (req, res) => {
@@ -136,8 +96,8 @@ class App {
         });
         this.app.use('/', router);
     }
-    _rest_client(market_name, url, market_info) {
-        log.green('market_name', market_name);
+    _rest_client(symbol, url, market_info) {
+        log.green('symbol', symbol);
         log.green('url', url);
         log.green('market_info', market_info);
         return new Promise((resolve, reject) => {
@@ -148,10 +108,13 @@ class App {
                 .then(res => {
                 let res_data = res.data;
                 lodash_1.default.each(res_data.Data, obj => {
+                    log.red(res_data.Data);
                     let timestamp = obj.time * 1000;
                     let date = new Date(timestamp);
                     obj.volume = lodash_1.default.add(obj.volumeto, obj.volumeto);
                     crypto_arr.push({
+                        exchange: 'HitBTC',
+                        market_info: market_info,
                         timestamp: timestamp,
                         date: date,
                         close: obj.close,
